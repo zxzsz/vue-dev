@@ -46,8 +46,9 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Helper that recursively merges two data objects together.
  */
+// 将第二个参数对象中的值合并到第一个参数对象中。
 function mergeData (to: Object, from: ?Object): Object {
-  if (!from) return to
+  if (!from) return to // 如果只传了一个值则返回该对象。
   let key, toVal, fromVal
 
   const keys = hasSymbol
@@ -55,15 +56,15 @@ function mergeData (to: Object, from: ?Object): Object {
     : Object.keys(from)
 
   for (let i = 0; i < keys.length; i++) {
-    key = keys[i]
+    key = keys[i] // 遍历第二个参数对象。
     // in case the object is already observed...
-    if (key === '__ob__') continue
+    if (key === '__ob__') continue // 不需要对__ob__属性进行合并。
     toVal = to[key]
     fromVal = from[key]
     if (!hasOwn(to, key)) {
-      set(to, key, fromVal)
+      set(to, key, fromVal) // 如果第一个参数对象中没有该属性，则把第二个参数对象中的这个属性及其值添加到第一个参数对象中。
     } else if (
-      toVal !== fromVal &&
+      toVal !== fromVal && // 如果第一个参数对象中有该属性了并且它是对象，则对这个对象递归调用本方法再次合并。
       isPlainObject(toVal) &&
       isPlainObject(fromVal)
     ) {
@@ -105,12 +106,12 @@ export function mergeDataOrFn (
       // instance merge
       const instanceData = typeof childVal === 'function'
         ? childVal.call(vm, vm)
-        : childVal
+        : childVal // 获取子的data值，如果是对象直接获取，如果是函数则调用获取。
       const defaultData = typeof parentVal === 'function'
         ? parentVal.call(vm, vm)
-        : parentVal
+        : parentVal // 获取父的data值，如果是对象直接获取，如果是函数则调用获取。
       if (instanceData) {
-        return mergeData(instanceData, defaultData)
+        return mergeData(instanceData, defaultData) // 把获取到的两个值进行合并。
       } else {
         return defaultData
       }
@@ -118,6 +119,7 @@ export function mergeDataOrFn (
   }
 }
 
+// data选项的合并策略。根据是否传了vm参数，返回mergeDataOrFn函数调用结果。
 strats.data = function (
   parentVal: any,
   childVal: any,
@@ -136,29 +138,32 @@ strats.data = function (
     }
     return mergeDataOrFn(parentVal, childVal)
   }
-
+  // mergeDataOrFn函数调用后仅仅是返回一个函数，还没有读取具体的值，因为props还没有初始化，还不能读取其值。
   return mergeDataOrFn(parentVal, childVal, vm)
 }
 
 /**
  * Hooks and props are merged as arrays.
  */
+
+// 生命周期钩子函数合并策略。
 function mergeHook (
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
 ): ?Array<Function> {
   const res = childVal
-    ? parentVal
-      ? parentVal.concat(childVal)
-      : Array.isArray(childVal)
+    ? parentVal 
+      ? parentVal.concat(childVal) // 如果子有值父也有值，则把父子值concat到同一个数组。
+      : Array.isArray(childVal) // 如果子有值父没有值，则再判断子的值是否是数组，不是的话把它放进数组中。
         ? childVal
         : [childVal]
-    : parentVal
+    : parentVal // 如果子没有值则直接返回父的值。
   return res
-    ? dedupeHooks(res)
+    ? dedupeHooks(res) // 如果res存在则返回dedupeHooks(res)
     : res
 }
 
+// 去除相同的生命周期函数。
 function dedupeHooks (hooks) {
   const res = []
   for (let i = 0; i < hooks.length; i++) {
@@ -169,6 +174,8 @@ function dedupeHooks (hooks) {
   return res
 }
 
+
+// 生命周期函数的合并策略。共用一个函数mergeHook。
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
@@ -453,7 +460,7 @@ export function mergeOptions (
 
   const options = {}
   let key
-  for (key in parent) {
+  for (key in parent) { // 对parent中的每个key调用mergeField。
     mergeField(key)
   }
   for (key in child) {
@@ -461,6 +468,9 @@ export function mergeOptions (
       mergeField(key)
     }
   }
+
+  // Vue把所有不同选项的合并策略放在一个对象strats中，遍历到哪个key，就调用相应的strats[key]方法，如果没有为该选项指定特定的策略，则使用defaulStrat。 
+  // 如遍历到data则调用strats[data],遍历到props则调用strats[props],如果对象中没有该方法则调用defaultStrat。
   function mergeField (key) {
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
