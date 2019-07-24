@@ -270,12 +270,14 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 /**
  * Validate component names
  */
+// 对options.components中的每个key进行校验。
 function checkComponents (options: Object) {
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
 
+// components中的key必须是指定格式并且不能是内置标签。
 export function validateComponentName (name: string) {
   if (!new RegExp(`^[a-zA-Z][\\-\\.0-9_${unicodeRegExp.source}]*$`).test(name)) {
     warn(
@@ -297,15 +299,29 @@ export function validateComponentName (name: string) {
  */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
-  if (!props) return
+  if (!props) return // 没有props直接return。
   const res = {}
   let i, val, name
+
+  // 我们在写props的时候可以写成多种形式，如下，这里会统一把它转换为第三种形式。
+  // 1.props：['a', 'b', 'c']
+  // 2.props: {
+  //   a: String,
+  //   b: Number,
+  //   c: Object
+  // }
+  // 3.props: {
+  //   a: {
+  //     type: String,
+  //     default: ''
+  //   }
+  // }
   if (Array.isArray(props)) {
     i = props.length
     while (i--) {
       val = props[i]
       if (typeof val === 'string') {
-        name = camelize(val)
+        name = camelize(val) // 转换成驼峰形式。
         res[name] = { type: null }
       } else if (process.env.NODE_ENV !== 'production') {
         warn('props must be strings when using array syntax.')
@@ -359,6 +375,22 @@ function normalizeInject (options: Object, vm: ?Component) {
 /**
  * Normalize raw function directives into object format.
  */
+
+ // 指令可以写成两种形式，如下，如果是第一种形式，则把它规范成第二种，并且bind跟update都设置成该函数。
+//  1.directives: {
+//    a() {},
+//    b() {}
+//  }
+//  2.directives: {
+//    a: {
+//      bind() {},
+//      update() {}
+//    }
+//    b: {
+//      bind() {},
+//      update() {}
+//    }
+//  }
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
   if (dirs) {
@@ -391,6 +423,7 @@ export function mergeOptions (
   vm?: Component
 ): Object {
   if (process.env.NODE_ENV !== 'production') {
+    // 检查components是否正确。
     checkComponents(child)
   }
 
@@ -398,15 +431,16 @@ export function mergeOptions (
     child = child.options
   }
 
-  normalizeProps(child, vm)
+  normalizeProps(child, vm) // 规范化props。
   normalizeInject(child, vm)
-  normalizeDirectives(child)
+  normalizeDirectives(child) // 规范化指令。
 
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
   if (!child._base) {
+    // 对options中的extends和mixins做合并。
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)
     }
