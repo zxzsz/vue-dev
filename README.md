@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center"><a href="https://vuejs.org" target="_blank" rel="noopener noreferrer"><img width="100" src="https://vuejs.org/images/logo.png" alt="Vue logo"></a></p>
 
 <p align="center">
@@ -357,3 +358,7 @@ Thank you to all the people who already contributed to Vue!
 [MIT](http://opensource.org/licenses/MIT)
 
 Copyright (c) 2013-present, Yuxi (Evan) You
+=======
+# vue-dev
+vue
+>>>>>>> b66a93982bf409f8469783d55c9e0a61bcc4c947
