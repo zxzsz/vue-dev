@@ -175,7 +175,7 @@ function dedupeHooks (hooks) {
 }
 
 
-// 生命周期函数的合并策略。共用一个函数mergeHook。
+// 生命周期函数的合并策略，共用一个函数mergeHook。
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
@@ -187,6 +187,8 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * a three-way merge between constructor options, instance
  * options and parent options.
  */
+
+ // components、directives、filters的合并策略。以父的值作为原型创建对象，再把子的值添加到对象中。
 function mergeAssets (
   parentVal: ?Object,
   childVal: ?Object,
