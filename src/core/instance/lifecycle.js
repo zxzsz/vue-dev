@@ -34,6 +34,7 @@ export function initLifecycle (vm: Component) {
 
   // locate first non-abstract parent
   let parent = options.parent
+  // 给组件间建立父子关系，如果是抽象组件则跳过该组件往上一层查找。
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
@@ -336,9 +337,10 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
-  const handlers = vm.$options[hook]
+  const handlers = vm.$options[hook] // 合并选项的时候把钩子函数合并成一个数组，这里拿到该数组。
   const info = `${hook} hook`
   if (handlers) {
+    // 存在该数组则遍历对其中的每个函数都再次传入invokeWithErrorHandling函数中。
     for (let i = 0, j = handlers.length; i < j; i++) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }

@@ -24,12 +24,12 @@ export function validateProp (
   propsData: Object,
   vm?: Component
 ): any {
-  const prop = propOptions[key]
-  const absent = !hasOwn(propsData, key)
+  const prop = propOptions[key] // 获取props对应key对象。
+  const absent = !hasOwn(propsData, key) // 判断propsData中是否没有该key。
   let value = propsData[key]
   // boolean casting
-  const booleanIndex = getTypeIndex(Boolean, prop.type)
-  if (booleanIndex > -1) {
+  const booleanIndex = getTypeIndex(Boolean, prop.type) // 判断这个prop的type是否是Boolean类型。
+  if (booleanIndex > -1) { // booleanIndex > -1说明type中存在Boolean。
     if (absent && !hasOwn(prop, 'default')) {
       value = false
     } else if (value === '' || value === hyphenate(key)) {
@@ -188,12 +188,15 @@ function isSameType (a, b) {
   return getType(a) === getType(b)
 }
 
+// 这个方法判断某个prop的类型是否与传入参数类型相同。
 function getTypeIndex (type, expectedTypes): number {
-  if (!Array.isArray(expectedTypes)) {
-    return isSameType(expectedTypes, type) ? 0 : -1
+  // poprs的定义方式可以是a: {type: String, default: ''} , 也可以是a: {type: [String, Number],...}。
+  if (!Array.isArray(expectedTypes)) { // 不是数组时
+    return isSameType(expectedTypes, type) ? 0 : -1 // type与参数类型相同返回1，不是则返回-1；
   }
+  // 对于数组写法，对数组每个元素与参数类型比较，返回与指定参数类型相同的元素的索引。
   for (let i = 0, len = expectedTypes.length; i < len; i++) {
-    if (isSameType(expectedTypes[i], type)) {
+    if (isSameType(expectedTypes[i], type)) { 
       return i
     }
   }

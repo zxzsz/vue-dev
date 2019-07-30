@@ -112,16 +112,17 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     return
   }
   let ob: Observer | void
+  // 判断data中是否已经存在__ob__属性，若存在则说明已经是响应式数据了。直接返回__ob__属性。
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
-    shouldObserve &&
-    !isServerRendering() &&
-    (Array.isArray(value) || isPlainObject(value)) &&
+    shouldObserve && // shouldObserve属性用来控制是否进行observe操作，如果不想对某个对象做observe，则只需要调用toggleObserve方法把shouldObserve设置为false。
+    !isServerRendering() && // 非服务端渲染相关。
+    (Array.isArray(value) || isPlainObject(value)) && // 对象或数组数据。
     Object.isExtensible(value) &&
-    !value._isVue
+    !value._isVue // 不是Vue实例。
   ) {
-    ob = new Observer(value)
+    ob = new Observer(value) // ob为Observer类的对象，传入data。
   }
   if (asRootData && ob) {
     ob.vmCount++

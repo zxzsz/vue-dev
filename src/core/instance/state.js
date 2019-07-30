@@ -48,10 +48,10 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
-  if (opts.props) initProps(vm, opts.props)
+  if (opts.props) initProps(vm, opts.props) // 初始化props。
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
-    initData(vm)
+    initData(vm) // 初始化data。
   } else {
     observe(vm._data = {}, true /* asRootData */)
   }
@@ -73,7 +73,7 @@ function initProps (vm: Component, propsOptions: Object) {
     toggleObserving(false)
   }
   for (const key in propsOptions) {
-    keys.push(key)
+    keys.push(key) // 把props的每个key存入keys数组。
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -111,6 +111,7 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 如果data是函数则执行该函数获取data，否则直接获取data，没有则为空对象。
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -127,6 +128,7 @@ function initData (vm: Component) {
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // data中不能与props、methods中出现相同的key。
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
@@ -148,6 +150,7 @@ function initData (vm: Component) {
     }
   }
   // observe data
+  // 调用observe对数据做响应式。
   observe(data, true /* asRootData */)
 }
 
@@ -155,6 +158,7 @@ export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
   pushTarget()
   try {
+    // 执行data函数获取data对象。
     return data.call(vm, vm)
   } catch (e) {
     handleError(e, vm, `data()`)

@@ -48,6 +48,7 @@ export function initMixin (Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
+      // 使用Proxy监听对象的has，这样如果使用了一个在data中没有的值才能更好的报错提示。
       initProxy(vm)
     } else {
       vm._renderProxy = vm
@@ -55,9 +56,9 @@ export function initMixin (Vue: Class<Component>) {
     // expose real self
     vm._self = vm
     initLifecycle(vm)
-    initEvents(vm)
+    initEvents(vm) // 处理事件相关。
     initRender(vm)
-    callHook(vm, 'beforeCreate')
+    callHook(vm, 'beforeCreate') // 调用beforeCreate钩子函数。
     initInjections(vm) // resolve injections before data/props
     initState(vm)
     initProvide(vm) // resolve provide after data/props
