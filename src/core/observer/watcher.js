@@ -51,14 +51,16 @@ export default class Watcher {
   ) {
     this.vm = vm
     if (isRenderWatcher) {
+      // 渲染Watcher保存在vm._watcher中。
       vm._watcher = this
     }
+    // 把每个Watcher都保存在vm._watchers数组中。
     vm._watchers.push(this)
     // options
     if (options) {
       this.deep = !!options.deep
       this.user = !!options.user
-      this.lazy = !!options.lazy
+      this.lazy = !!options.lazy // 计算属性专属标志，如果是计算属性，则此处为true。
       this.sync = !!options.sync
       this.before = options.before
     } else {
@@ -77,7 +79,7 @@ export default class Watcher {
       : ''
     // parse expression for getter
     if (typeof expOrFn === 'function') {
-      this.getter = expOrFn
+      this.getter = expOrFn // 
     } else {
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
@@ -92,7 +94,7 @@ export default class Watcher {
     }
     this.value = this.lazy
       ? undefined
-      : this.get()
+      : this.get() // 这里根据lazy标志决定是否求值，如果有lazy标志，则value为undefined，如果没有lazy，则立即调用get求值。
   }
 
   /**

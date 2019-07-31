@@ -36,12 +36,14 @@ const sharedPropertyDefinition = {
 }
 
 export function proxy (target: Object, sourceKey: string, key: string) {
+  // 定义get、set方法。
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
   }
   sharedPropertyDefinition.set = function proxySetter (val) {
     this[sourceKey][key] = val
   }
+  // 代理。
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
@@ -53,9 +55,10 @@ export function initState (vm: Component) {
   if (opts.data) {
     initData(vm) // 初始化data。
   } else {
+    // 如果没有定义data，则把data设为空对象。
     observe(vm._data = {}, true /* asRootData */)
   }
-  if (opts.computed) initComputed(vm, opts.computed)
+  if (opts.computed) initComputed(vm, opts.computed) // 初始化computed。
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }
@@ -146,11 +149,11 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
-      proxy(vm, `_data`, key)
+      proxy(vm, `_data`, key) // 把vm.key的访问代理到vm._data.key,这就使得可以直接使用this.key访问data。
     }
   }
   // observe data
-  // 调用observe对数据做响应式。
+  // 调用observe对数据添加getter/setter。
   observe(data, true /* asRootData */)
 }
 
@@ -178,7 +181,9 @@ function initComputed (vm: Component, computed: Object) {
 
   for (const key in computed) {
     const userDef = computed[key]
+    // computed可以是一个函数也可以是对象，如果是对象则要获取get函数。
     const getter = typeof userDef === 'function' ? userDef : userDef.get
+    // 没有这个函数则报错。
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
         `Getter is missing for computed property "${key}".`,
@@ -188,6 +193,7 @@ function initComputed (vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // 创建Watcher对象，保存在watchers[key]中，这里由于是计算属性的Watcher，所以会添加computedWatcherOptions配置，有lazy：true标志。
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -202,7 +208,7 @@ function initComputed (vm: Component, computed: Object) {
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
-      if (key in vm.$data) {
+      if (key in vm.$data) { // computed 的值不能在data和props中存在。
         warn(`The computed property "${key}" is already defined in data.`, vm)
       } else if (vm.$options.props && key in vm.$options.props) {
         warn(`The computed property "${key}" is already defined as a prop.`, vm)
@@ -216,22 +222,25 @@ export function defineComputed (
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering()
-  if (typeof userDef === 'function') {
+  const shouldCache = !isServerRendering() // 非服务端渲染时均未true。
+  if (typeof userDef === 'function') {// computed是函数的情况。
     sharedPropertyDefinition.get = shouldCache
-      ? createComputedGetter(key)
+      ? createComputedGetter(key) // get函数为createComputedGetter(key)返回的另一个函数，这个函数将在访问到这个计算属性时触发。
       : createGetterInvoker(userDef)
-    sharedPropertyDefinition.set = noop
+    sharedPropertyDefinition.set = noop // set为空函数。
   } else {
+    // computed是如下这种写法时走这里。
+    // computed: {get() {}, cache: }。
     sharedPropertyDefinition.get = userDef.get
-      ? shouldCache && userDef.cache !== false
-        ? createComputedGetter(key)
+      ? shouldCache && userDef.cache !== false // 需要判断没有在computed配置cache: false
+        ? createComputedGetter(key) // 与前面分支处理一样。
         : createGetterInvoker(userDef.get)
       : noop
     sharedPropertyDefinition.set = userDef.set || noop
   }
   if (process.env.NODE_ENV !== 'production' &&
       sharedPropertyDefinition.set === noop) {
+        // 如果没有手动给计算属性写set函数，则对其set将报此错误。
     sharedPropertyDefinition.set = function () {
       warn(
         `Computed property "${key}" was assigned to but it has no setter.`,
@@ -239,9 +248,11 @@ export function defineComputed (
       )
     }
   }
+  // 把这个计算属性定义到vm实例上。
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// 此函数返回的函数是计算属性的get函数，一旦访问到某个计算属性，就会调用这个函数。
 function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]

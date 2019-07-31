@@ -40,19 +40,19 @@ export class Observer {
   vmCount: number; // number of vms that have this object as root $data
 
   constructor (value: any) {
-    this.value = value
-    this.dep = new Dep()
+    this.value = value // __ob__对象中存入data。
+    this.dep = new Dep() // 用于收集依赖，dep对象有一个id属性，一个subs数组。
     this.vmCount = 0
-    def(value, '__ob__', this)
-    if (Array.isArray(value)) {
-      if (hasProto) {
-        protoAugment(value, arrayMethods)
+    def(value, '__ob__', this) // 把当前new的对象定义到data.__ob__属性上。
+    if (Array.isArray(value)) { // 数组数据的处理。
+      if (hasProto) { // 判断对象是否有__proto__属性。
+        protoAugment(value, arrayMethods) // 如果是数组数据，则把重写的7个数组变异方法添加到__proto__属性上。
       } else {
-        copyAugment(value, arrayMethods, arrayKeys)
+        copyAugment(value, arrayMethods, arrayKeys) // 如果不支持__proto__属性，则使用Object.defineProperty添加。
       }
-      this.observeArray(value)
+      this.observeArray(value) // 对数组的每一项再调用observe方法。
     } else {
-      this.walk(value)
+      this.walk(value) // walk方法对data中的每一项调用defineReactive方法，为对象添加setter/getter。
     }
   }
 
@@ -61,6 +61,7 @@ export class Observer {
    * getter/setters. This method should only be called when
    * value type is Object.
    */
+  // 对data的每一项调用difineReactive方法添加getter/setter。
   walk (obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
@@ -71,6 +72,7 @@ export class Observer {
   /**
    * Observe a list of Array items.
    */
+  // 如果data中有数组数据，则对数组中的每一项再次调用observe方法。
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i])
@@ -108,6 +110,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * or the existing observer if the value already has one.
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
+  // 如果不是对象类型的值，则直接return，不需要设置响应式。
   if (!isObject(value) || value instanceof VNode) {
     return
   }
@@ -124,6 +127,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
   ) {
     ob = new Observer(value) // ob为Observer类的对象，传入data。
   }
+  // 如果这个data是一个根data则说明又定义了一个实例，ob.vmCount++。
   if (asRootData && ob) {
     ob.vmCount++
   }
@@ -140,21 +144,25 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
-  const dep = new Dep()
+  const dep = new Dep() // 每个对象类型的data都通过闭包引用这个dep对象。
 
+  // 如果一个对象的configurable为false，则直接return。
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
+  // 如果某个data原本就是用getter取值，需要先拿到该getter。
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
-    val = obj[key]
+    val = obj[key] // data本身没getter则直接赋值给val。
   }
-
+  
+  // !shallow表示对深层次的数据也需要做响应式，对每个属性再递归调用ovserve方法。
   let childOb = !shallow && observe(val)
+  // 给data的每个属性定义get/set方法，至此该方法结束，get、set方法需要在获取对象值与设置对象值时触发。
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
