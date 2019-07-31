@@ -214,6 +214,21 @@ ASSET_TYPES.forEach(function (type) {
  * Watchers hashes should not overwrite one
  * another, so we merge them as arrays.
  */
+
+// watch合并策略，watch有如下几种写法。
+// 1.watch: {
+//   a:function() {}
+// }
+// 2.watch: {
+//   a: {
+//     handler: function() {}
+//   }
+// }
+// 3.watch: {
+//   a: [function() {}, function() {}]
+// }
+// 4.watch: ['handle1', 'handle2']
+// 5.watch: 'handle'
 strats.watch = function (
   parentVal: ?Object,
   childVal: ?Object,

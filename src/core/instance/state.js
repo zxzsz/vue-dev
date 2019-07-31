@@ -50,17 +50,17 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
-  if (opts.props) initProps(vm, opts.props) // 初始化props。
-  if (opts.methods) initMethods(vm, opts.methods)
+  if (opts.props) initProps(vm, opts.props) // 初始化props。*****
+  if (opts.methods) initMethods(vm, opts.methods) // 初始化methods。*
   if (opts.data) {
-    initData(vm) // 初始化data。
+    initData(vm) // 初始化data。***
   } else {
     // 如果没有定义data，则把data设为空对象。
     observe(vm._data = {}, true /* asRootData */)
   }
-  if (opts.computed) initComputed(vm, opts.computed) // 初始化computed。
-  if (opts.watch && opts.watch !== nativeWatch) {
-    initWatch(vm, opts.watch)
+  if (opts.computed) initComputed(vm, opts.computed) // 初始化computed。***
+  if (opts.watch && opts.watch !== nativeWatch) { //firefox 中Object.prototy上有一个watch函数。
+    initWatch(vm, opts.watch) // 初始化watch。
   }
 }
 
@@ -135,14 +135,14 @@ function initData (vm: Component) {
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
-      if (methods && hasOwn(methods, key)) {
+      if (methods && hasOwn(methods, key)) { // methods中存在这个key了。
         warn(
           `Method "${key}" has already been defined as a data property.`,
           vm
         )
       }
     }
-    if (props && hasOwn(props, key)) {
+    if (props && hasOwn(props, key)) { // props中存在这个key了。
       process.env.NODE_ENV !== 'production' && warn(
         `The data property "${key}" is already declared as a prop. ` +
         `Use prop default value instead.`,
@@ -171,7 +171,7 @@ export function getData (data: Function, vm: Component): any {
   }
 }
 
-const computedWatcherOptions = { lazy: true }
+const computedWatcherOptions = { lazy: true } // 创建计算属性Watcher时传入的标志。
 
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
@@ -206,11 +206,11 @@ function initComputed (vm: Component, computed: Object) {
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
     if (!(key in vm)) {
-      defineComputed(vm, key, userDef)
+      defineComputed(vm, key, userDef) // 把计算属性定义到vm实例上。
     } else if (process.env.NODE_ENV !== 'production') {
-      if (key in vm.$data) { // computed 的值不能在data和props中存在。
+      if (key in vm.$data) { // computed 的值不能在data中存在。
         warn(`The computed property "${key}" is already defined in data.`, vm)
-      } else if (vm.$options.props && key in vm.$options.props) {
+      } else if (vm.$options.props && key in vm.$options.props) { // computed 的值不能在props中存在。
         warn(`The computed property "${key}" is already defined as a prop.`, vm)
       }
     }
@@ -234,7 +234,7 @@ export function defineComputed (
     sharedPropertyDefinition.get = userDef.get
       ? shouldCache && userDef.cache !== false // 需要判断没有在computed配置cache: false
         ? createComputedGetter(key) // 与前面分支处理一样。
-        : createGetterInvoker(userDef.get)
+        : createGetterInvoker(userDef.get) // 设置cache: false时走这个分支。
       : noop
     sharedPropertyDefinition.set = userDef.set || noop
   }
@@ -268,6 +268,7 @@ function createComputedGetter (key) {
   }
 }
 
+// 如果computed中设置了cache：false，则设置此处返回的函数为其getter函数。
 function createGetterInvoker(fn) {
   return function computedGetter () {
     return fn.call(this, this)
@@ -278,32 +279,35 @@ function initMethods (vm: Component, methods: Object) {
   const props = vm.$options.props
   for (const key in methods) {
     if (process.env.NODE_ENV !== 'production') {
-      if (typeof methods[key] !== 'function') {
+      if (typeof methods[key] !== 'function') { // methods不是函数报错。
         warn(
           `Method "${key}" has type "${typeof methods[key]}" in the component definition. ` +
           `Did you reference the function correctly?`,
           vm
         )
       }
-      if (props && hasOwn(props, key)) {
+      if (props && hasOwn(props, key)) { // props 存在该key。
         warn(
           `Method "${key}" has already been defined as a prop.`,
           vm
         )
       }
-      if ((key in vm) && isReserved(key)) {
+      if ((key in vm) && isReserved(key)) { // Vue实例中存在这个方法名。
         warn(
           `Method "${key}" conflicts with an existing Vue instance method. ` +
           `Avoid defining component methods that start with _ or $.`
         )
       }
     }
+    // 不是function则设置为空函数，否则使用bind绑定到vm实例上，可通过this.xx访问方法。
     vm[key] = typeof methods[key] !== 'function' ? noop : bind(methods[key], vm)
   }
 }
 
+// 初始化watch
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
+    // 拿到watch的值，对其调用createWatcher方法。watch的值可以是函数、对象或者数组。
     const handler = watch[key]
     if (Array.isArray(handler)) {
       for (let i = 0; i < handler.length; i++) {
