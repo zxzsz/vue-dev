@@ -22,9 +22,11 @@ Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 获取到el的dom对象，如果不是dom对象，是写的类名或者id名则需要选出dom对象。
   el = el && query(el)
 
   /* istanbul ignore if */
+  // 如果el是body或者html标签，报错。
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
@@ -34,6 +36,7 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  // 没有手写render时需要先把template编译成render函数。
   if (!options.render) {
     let template = options.template
     if (template) {
@@ -64,7 +67,7 @@ Vue.prototype.$mount = function (
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
-
+      // 把template编译成render函数。复杂！复杂！！复杂！！！
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
@@ -72,6 +75,7 @@ Vue.prototype.$mount = function (
         delimiters: options.delimiters,
         comments: options.comments
       }, this)
+      // 高能结束~
       options.render = render
       options.staticRenderFns = staticRenderFns
 

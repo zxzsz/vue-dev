@@ -20,6 +20,7 @@ export default class Dep {
     this.subs = []
   }
 
+  // 在watcher中调用此方法，会把所有watcher都添加到subs数组中。
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
@@ -28,6 +29,8 @@ export default class Dep {
     remove(this.subs, sub)
   }
 
+  // 在属性被访问时触发getter函数调用此函数，在new Watcher时会把当前正在求值的wacher保存到Dep.target中。
+  // 这里会调用这个wacher的addDep方法，传入当前对象。
   depend () {
     if (Dep.target) {
       Dep.target.addDep(this)

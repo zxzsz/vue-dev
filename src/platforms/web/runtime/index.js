@@ -40,12 +40,15 @@ Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
 
-// 原型添加$mount方法。
+// 原型添加$mount方法。如果手写了render函数直接调用这个$mount方法，如果没有写render函数就需要
+// 先在entry-runtime-with-compiler中定义的$mount方法中把template编译成render函数。
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 选中el的dom对象。
   el = el && inBrowser ? query(el) : undefined
+  // 直接调用mountComponent方法。
   return mountComponent(this, el, hydrating)
 }
 

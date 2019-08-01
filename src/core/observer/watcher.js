@@ -113,7 +113,7 @@ export default class Watcher {
       // 这里调用this.getter就是new Watcher时监听的表达式，在执行的过程中就会访问到依赖的属性。
       // 如： 假设监听的表达式是：function() {return this.a + this.b}
       // 执行这个表达式的过程中，肯定要访问到this.a和this.b,这一访问，即触发了之前initData时对这个属性设置的getter方法。
-      // 这里将跳到表达式中依赖属性的getter。
+      // 这里将跳到表达式中所依赖属性的getter。
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -137,12 +137,14 @@ export default class Watcher {
   /**
    * Add a dependency to this directive.
    */
+  // 通过id避免重复收集依赖。
   addDep (dep: Dep) {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
       if (!this.depIds.has(id)) {
+        // 把当前这个watcher存入到dep中。
         dep.addSub(this)
       }
     }
@@ -253,3 +255,9 @@ export default class Watcher {
     }
   }
 }
+
+// 响应式步骤：从触发数据get开始。
+// 1.每个属性通过闭包引用一个Dep类的对象dep，触发get方法，调用dep.depend。
+// 2.在dep.depend中又调用当前正在求值的watcher的addDep方法，并把this传入，this就是当前这个dep对象。
+// 3.在addDep中首先会把这个dep对象和他的id保存到当前这个watcher的newDeps和newDepIds中，再调用dep.addSub。把当前这个watcher传入。
+// 4.在dep.addSub中，把传入的watcher保存到自身的subs数组中，完成依赖收集。

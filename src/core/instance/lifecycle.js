@@ -170,6 +170,7 @@ export function mountComponent (
   let updateComponent
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+    // 此处对vue的两个阶段做了性能监测，调用render函数生成vnode阶段和调用update挂载阶段。
     updateComponent = () => {
       const name = vm._name
       const id = vm._uid
@@ -186,7 +187,8 @@ export function mountComponent (
       mark(endTag)
       measure(`vue ${name} patch`, startTag, endTag)
     }
-  } else {
+  } else { // 不关心性能监测方面，直接这个分支，功能一样。
+    // 这个方法就是用于渲染和更新的方法，即渲染watcher。
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }

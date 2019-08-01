@@ -166,13 +166,18 @@ export function defineReactive (
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
+    // 当访问到某个数据时，触发此处get函数。
     get: function reactiveGetter () {
+      // 获取值，因为有可能数据本身就有getter函数，所有这里需要判断是否有getter，有则通过getter函数获取值。
       const value = getter ? getter.call(obj) : val
+      // 在new Watcher时会把正在求值的watcher放到Dep.target中。
       if (Dep.target) {
+        // 当前属性通过闭包引用的dep调用depend方法。
         dep.depend()
         if (childOb) {
+          // 对深层次的数据继续做依赖收集。
           childOb.dep.depend()
-          if (Array.isArray(value)) {
+          if (Array.isArray(value)) { // 如果是数组则对每一项调用dep.depend.
             dependArray(value)
           }
         }
