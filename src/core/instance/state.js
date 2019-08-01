@@ -304,12 +304,16 @@ function initMethods (vm: Component, methods: Object) {
   }
 }
 
-// 初始化watch
+// 初始化watch，watch合并后示例： 
+// watch: {
+//   a: [function() {}, {handle: function() {}}, 'handle1','handle2']
+// }
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
-    // 拿到watch的值，对其调用createWatcher方法。watch的值可以是函数、对象或者数组。
+    // 拿到watch的值，对其调用createWatcher方法。
     const handler = watch[key]
     if (Array.isArray(handler)) {
+      // 对于上面这种watch写法，会遍历数组对每个值都调用createWatcher。
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
       }
@@ -325,13 +329,16 @@ function createWatcher (
   handler: any,
   options?: Object
 ) {
+  // 对象写法需要从对象中取出handle函数。
   if (isPlainObject(handler)) {
     options = handler
     handler = handler.handler
   }
+  // 如果是string，则是当前实例methods中的方法，直接从vm中拿该函数。
   if (typeof handler === 'string') {
     handler = vm[handler]
   }
+  // watch的最终处理也是调用$watch方法。
   return vm.$watch(expOrFn, handler, options)
 }
 
@@ -361,25 +368,33 @@ export function stateMixin (Vue: Class<Component>) {
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
 
+  // $watch方法的实现。
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
     options?: Object
   ): Function {
     const vm: Component = this
+    // 我们写$watch可以写成vm.$watch('a', function() {}), 也可以写成vm.$watch('a', {handle: function() {}})
+    // 如果是对象，需要调用createWatcher方法取出handle函数，保证这里的cb是函数。
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
+    // $watch 可以写配置：vm.$watch('a', function() {}, {deep: true, immediate: true}),如果没写，则设为{user: true}。
     options = options || {}
     options.user = true
+    // 创建watcher对象。
     const watcher = new Watcher(vm, expOrFn, cb, options)
+    // 如果配置了immediate: true，则在做完监听后立即调用一次回调函数。
     if (options.immediate) {
       try {
+        // 调用回调函数，传入的值为刚刚在求完的值。
         cb.call(vm, watcher.value)
       } catch (error) {
         handleError(error, vm, `callback for immediate watcher "${watcher.expression}"`)
       }
     }
+    // 最后返回一个函数，调用返回的函数即可取消对其监听。
     return function unwatchFn () {
       watcher.teardown()
     }

@@ -79,10 +79,12 @@ export default class Watcher {
       : ''
     // parse expression for getter
     if (typeof expOrFn === 'function') {
-      this.getter = expOrFn // 
+      this.getter = expOrFn // 把监听的表达式保存在this.getter中。
     } else {
+      // 我们写$watch监听的表达式可以写成函数,也可以写成'a'或者'a.b.c'这样的形式。
+      // 对于第二种情况，需要对他做解析也转化成函数。
       this.getter = parsePath(expOrFn)
-      if (!this.getter) {
+      if (!this.getter) { // 如果表达式获取不到，则保错。
         this.getter = noop
         process.env.NODE_ENV !== 'production' && warn(
           `Failed watching path: "${expOrFn}" ` +
@@ -92,6 +94,7 @@ export default class Watcher {
         )
       }
     }
+    // 在new Watcher 时会根据lazy标志决定是否立即对表达式求值，在计算属性new Watcher时会带有lazy。
     this.value = this.lazy
       ? undefined
       : this.get() // 这里根据lazy标志决定是否求值，如果有lazy标志，则value为undefined，如果没有lazy，则立即调用get求值。
@@ -100,11 +103,17 @@ export default class Watcher {
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
+  // 对监听的表达式求值的过程。
   get () {
+    // pushTarget把当前正在求值的那个watcher放到一个static 属性中，这样没访问到一个数据就能访问到该watcher进行依赖收集。
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // 这里调用this.getter就是new Watcher时监听的表达式，在执行的过程中就会访问到依赖的属性。
+      // 如： 假设监听的表达式是：function() {return this.a + this.b}
+      // 执行这个表达式的过程中，肯定要访问到this.a和this.b,这一访问，即触发了之前initData时对这个属性设置的getter方法。
+      // 这里将跳到表达式中依赖属性的getter。
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -118,6 +127,7 @@ export default class Watcher {
       if (this.deep) {
         traverse(value)
       }
+      // 当前watcher依赖收集完毕，从target中抛出当前watcher。
       popTarget()
       this.cleanupDeps()
     }

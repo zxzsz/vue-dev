@@ -30,11 +30,15 @@ export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
 /**
  * Parse simple path.
  */
+
+ // 解析如'a.b.c'这种数据。
 const bailRE = new RegExp(`[^${unicodeRegExp.source}.$_\\d]`)
 export function parsePath (path: string): any {
+  // 首先，这个路径不能是像'a\b#c'等这样不正确的路径方式。只能是通过.访问的形式。
   if (bailRE.test(path)) {
     return
   }
+  // 从符号.的地方切割路径，返回一个函数，函数中既是读取值。
   const segments = path.split('.')
   return function (obj) {
     for (let i = 0; i < segments.length; i++) {

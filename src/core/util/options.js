@@ -215,7 +215,7 @@ ASSET_TYPES.forEach(function (type) {
  * another, so we merge them as arrays.
  */
 
-// watch合并策略，watch有如下几种写法。
+// watch合并策略，watch有如下几种写法。合并后都会把他转化成数组。
 // 1.watch: {
 //   a:function() {}
 // }
@@ -227,8 +227,12 @@ ASSET_TYPES.forEach(function (type) {
 // 3.watch: {
 //   a: [function() {}, function() {}]
 // }
-// 4.watch: ['handle1', 'handle2']
-// 5.watch: 'handle'
+// 4.watch: {a: ['handle1', 'handle2']}
+// 5.watch: {a: 'handle'}
+// 合并后示例： 
+// watch: {
+//   a: [function() {}, {handle: function() {}}, 'handle1','handle2']
+// }
 strats.watch = function (
   parentVal: ?Object,
   childVal: ?Object,
@@ -236,16 +240,18 @@ strats.watch = function (
   key: string
 ): ?Object {
   // work around Firefox's Object.prototype.watch...
+  // Firefox中Object.prototype上有watch函数，如果等于该函数则设为undefined。
   if (parentVal === nativeWatch) parentVal = undefined
   if (childVal === nativeWatch) childVal = undefined
   /* istanbul ignore if */
+  // 没有child则返回以parent为原型的空对象。
   if (!childVal) return Object.create(parentVal || null)
   if (process.env.NODE_ENV !== 'production') {
-    assertObjectType(key, childVal, vm)
+    assertObjectType(key, childVal, vm) // 检查是否是Object，不是Object将报错。
   }
-  if (!parentVal) return childVal
+  if (!parentVal) return childVal // 没有parent则返回child。
   const ret = {}
-  extend(ret, parentVal)
+  extend(ret, parentVal) // 把parent中的值扩展到ret空对象中。
   for (const key in childVal) {
     let parent = ret[key]
     const child = childVal[key]
