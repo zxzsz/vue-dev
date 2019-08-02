@@ -56,6 +56,7 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // 如果data有__ob__属性，则报错，vnode data不能是响应式数据。
   if (isDef(data) && isDef((data).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
@@ -65,11 +66,13 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // vnod data中有is属性就把tag换成is。
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
   if (!tag) {
     // in case of component :is set to falsy value
+    // 没有tag就创建空vnode。
     return createEmptyVNode()
   }
   // warn against non-primitive key
@@ -92,12 +95,14 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+  // 对children的不同规范形式。因为render函数可能是vue编译而成，也可以是我们手动写的render函数，对这两种不同的情况会用不同的规范形式。
   if (normalizationType === ALWAYS_NORMALIZE) {
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
+  // tag 是string的情况。
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
