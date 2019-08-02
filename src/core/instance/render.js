@@ -66,8 +66,10 @@ export function renderMixin (Vue: Class<Component>) {
     return nextTick(fn, this)
   }
 
+  // 调用render函数生成vnode。
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
+    // 从vm.$options中获取render函数。
     const { render, _parentVnode } = vm.$options
 
     if (_parentVnode) {

@@ -10,13 +10,16 @@ export function initUse (Vue: GlobalAPI) {
     }
 
     // additional parameters
+    // 把参数转换成数组。
     const args = toArray(arguments, 1)
     args.unshift(this)
+    // 调用插件的install方法或pulgin方法。
     if (typeof plugin.install === 'function') {
       plugin.install.apply(plugin, args)
     } else if (typeof plugin === 'function') {
       plugin.apply(null, args)
     }
+    // 把插件保存到Vue._installedPlugins数组中。
     installedPlugins.push(plugin)
     return this
   }

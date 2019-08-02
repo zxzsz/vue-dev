@@ -34,7 +34,9 @@ const sharedPropertyDefinition = {
   get: noop,
   set: noop
 }
-
+// 这个方法是我们能通过this.a访问a数据的实现。
+// 在initData跟initProps中有proxy(vm, '_data', key)和proxy(vm, '_props', key)。
+// 这两个方法调用就把对vm.key的访问代理到this._data/props.key上了，因此能访问到。
 export function proxy (target: Object, sourceKey: string, key: string) {
   // 定义get、set方法。
   sharedPropertyDefinition.get = function proxyGetter () {
@@ -351,6 +353,7 @@ export function stateMixin (Vue: Class<Component>) {
   const propsDef = {}
   propsDef.get = function () { return this._props }
   if (process.env.NODE_ENV !== 'production') {
+    // 通过这个api只能访问值不能修改值。
     dataDef.set = function () {
       warn(
         'Avoid replacing instance root $data. ' +
@@ -362,9 +365,12 @@ export function stateMixin (Vue: Class<Component>) {
       warn(`$props is readonly.`, this)
     }
   }
-  Object.defineProperty(Vue.prototype, '$data', dataDef)
+  // 把访问$data代理到_data上，这样访问this.$data也能访问到data。
+  Object.defineProperty(Vue.prototype, '$data', dataDef)、
+  // 把访问$props代理到_props上，这样访问this.$props能访问到props。
   Object.defineProperty(Vue.prototype, '$props', propsDef)
 
+  // 原型上添加$set、$delete方法。
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
 

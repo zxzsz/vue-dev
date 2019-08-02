@@ -19,6 +19,7 @@ import {
   normalizeChildren,
   simpleNormalizeChildren
 } from './helpers/index'
+import { renderClass } from '../../platforms/web/util';
 
 const SIMPLE_NORMALIZE = 1
 const ALWAYS_NORMALIZE = 2
@@ -33,6 +34,9 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 我们写render函数时，像如下这样写，
+  // render(c) { return c('div', {}, []) }
+  // 但vue也允许我们像 render(c) { return c('div', 'msg') }这样写，这里做了这种类似参数重载的处理。
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
@@ -41,6 +45,7 @@ export function createElement (
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
+  // 最终生成vnode是此处调用的_createElement方法。
   return _createElement(context, tag, data, children, normalizationType)
 }
 
@@ -51,7 +56,7 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
-  if (isDef(data) && isDef((data: any).__ob__)) {
+  if (isDef(data) && isDef((data).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
       'Always create fresh vnode data objects in each render!',
