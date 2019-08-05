@@ -184,7 +184,9 @@ export function defineReactive (
       }
       return value
     },
+    // 修改某个数据时，将调用数据的setter方法。
     set: function reactiveSetter (newVal) {
+      // 判断数据是否有getter，有则获取数据。
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
