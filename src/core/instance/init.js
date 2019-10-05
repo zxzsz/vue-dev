@@ -14,7 +14,7 @@ let uid = 0
 
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
-    // vm为当前实例
+    // vm为当前实例。
     const vm: Component = this
     // a uid
     // 添加一个_uid属性，每创建一个实例即+1。
