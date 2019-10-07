@@ -67,7 +67,7 @@ Vue.prototype.$mount = function (
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
-      // 把template编译成render函数。复杂！复杂！！复杂！！！
+      // 把template编译成render函数。
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
@@ -75,7 +75,6 @@ Vue.prototype.$mount = function (
         delimiters: options.delimiters,
         comments: options.comments
       }, this)
-      // 高能结束~
       options.render = render
       options.staticRenderFns = staticRenderFns
 
